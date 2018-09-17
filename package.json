@@ -1,0 +1,12 @@
+{
+  "name": "simplex-method-lab-1",
+  "version": "1.0.0",
+  "description": "lab 1 solution",
+  "main": "simplex.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node script.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
