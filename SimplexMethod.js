@@ -1,19 +1,14 @@
 class SimplexMethod {
-    constructor(simplexTable) {
-        if (!SimplexMethod.checkTable(simplexTable)) {
+    constructor(initialValues) {
+        if (!SimplexMethod.checkTable(initialValues.simplexTable)) {
             console.error('can\'t construct Simplex Table, argument is incorrect');
-            return {
-                error: 1
-            };
+            return null;
         }
 
-        this.table = simplexTable;
-        this.freeValues = ['X1', 'X2'];
-        // this.freeValuesAmount = this.freeValues.length;
-        this.baseValues = ['X3', 'X4', 'X5'];
-        // this.baseValuesAmount = this.baseValues.length;
+        this.table = initialValues.simplexTable;
+        this.freeValues = initialValues.freeValues;
+        this.baseValues = initialValues.baseValues;
         this.iteration = 0;
-        this.noSolutionFlag = false;
     }
 
     get freeValuesAmount() {
@@ -24,20 +19,16 @@ class SimplexMethod {
         return this.baseValues.length;
     }
 
-    showStat() {
-        console.log(`Симплекс таблица имеет вид: ${this.toString()} \nБазисные аргументы: ${this.baseValues}, Свободные аргументы: ${this.freeValues}`);
-    }
-
-    static checkTable(simplexTable) {
-        return (simplexTable instanceof Array);
+    get simplexTable() {
+        return this.table;
     }
 
     set simplexTable(table) {
         this.table = table;
     }
 
-    get simplexTable() {
-        return this.table;
+    showStat() {
+        console.log(`Симплекс таблица имеет вид: ${this.toString()} \nБазисные аргументы: ${this.baseValues}, Свободные аргументы: ${this.freeValues}`);
     }
 
     toString() {
@@ -45,7 +36,7 @@ class SimplexMethod {
             return (allStrings + `\n ${currentString}`)
         }, '');
     }
-
+    
     findKfirstPart() {
         console.log('ищем K-столбец');
 
@@ -56,17 +47,17 @@ class SimplexMethod {
                         return index; // разршающий столбец
                     }
                 }
-
+                
                 return null; // задача не имеет допустимых решений
             }
         }
-
+        
         return null;
     }
 
     findKsecondPart() {
         console.log('Поиск разрешающего столбца K.');
-
+        
         for (let index = 1; index < this.simplexTable[0].length; index++) {
             if (this.simplexTable[this.simplexTable.length - 1][index] > 0) {
                 for (let string = 0; string < this.baseValuesAmount; string++) {
@@ -78,10 +69,10 @@ class SimplexMethod {
                 return null;
             }
         }
-
+        
         return null;
     }
-
+    
     findR(k) {
         console.log('Поиск разрешающей строки R.')
         let r = null;
@@ -94,10 +85,10 @@ class SimplexMethod {
                     min = current;
                     r = str;
                 }
-
+                
                 continue;
             }
-
+            
             if (current > 0) {
                 min = current;
                 r = str;
@@ -114,84 +105,42 @@ class SimplexMethod {
     makeOptimizationStep(param) {
         if (param ? (!this.isAcceptable()) : (!this.isOptimal())) {
             if (param) {
-                console.log('Поиск допустимого решения, R и K')
+                console.log('Поиск допустимого решения, R и K');
             } else {
-                console.log('Поиск оптимального решения, R и K')
+                console.log('Поиск оптимального решения, R и K');
             }
-
+            
             do {
                 // ищем разрешающие  столбец затем строку
                 let k = (param ? this.findKfirstPart() : this.findKsecondPart());
-
+                
                 if (k === null) {
                     if (param) {
                         console.log('Задача не имеет допустимых решений!');
                     } else {
                         console.log('Задача не имеет оптимального решения!');
                     }
-
+                    
                     return null;
                 }
 
-                // ищем разрешающую строку
-                let r = this.findR(k);
+                let r = this.findR(k); // ищем разрешающую строку
 
                 console.log(`Столбец ${k}, строка ${r}, разрешающее значение ${this.simplexTable[r][k]}`);
-
+                
                 this.calculateGeordane(r, k); // выполняем Жордановы преобразования
                 this.showStat();
             } while (param ? (!this.isAcceptable()) : (!this.isOptimal()))
         }    
     }
-
+    
     optimize() {
         console.log('Начинаем оптимизацию...');
         this.showStat();
         
         this.makeOptimizationStep(1); // поиск допустимого решения.
         this.makeOptimizationStep(0); // поиск оптимального решения
-
-        // if (!this.isAcceptable()) {
-        //     console.log('Поиск допустимого решения, R и K')
-        //     do {
-        //         // ищем разрешающие столбец затем строку
-        //         let k = this.findKfirstPart();
-        //         if (k === null) {
-        //                 colsole.log('Задача не имеет допустимых решений!');
-        //                 return null;
-        //             }
-                    
-        //             // ищем разрешающую строку
-        //             let r = this.findR(k);
-
-        //             console.log(`Столбец ${k}, строка ${r}, разрешающее значение ${this.simplexTable[r][k]}`);
-                    
-        //             this.calculateGeordane(r, k); // выполняем Жордановы преобразования
-        //         this.showStat();
-        //     } while (!this.isAcceptable())
-        // }
         
-        // допустимое решение найдено.
-
-        // if (!this.isOptimal()) {
-        //     console.log('Поиск оптимального решения...');
-        //     do {
-        //         let k = this.findKsecondPart();
-        //         if (k === null) {
-        //             console.log('Нет оптимального решения!');
-        //             return null;
-        //         }
-        //         console.log(`Значение столбца K = ${k}`);
-
-        //         let r = this.findR(k);
-
-        //         console.log(`Столбец ${k}, строка ${r}, разрешающее значение ${this.simplexTable[r][k]}`);
-
-        //         this.calculateGeordane(r, k);
-        //         this.showStat();
-        //     } while (!this.isOptimal())
-        // }
-
         console.log('Оптимальное решение найдено!');
         console.log(`Оптимизация выполнена за ${this.iteration} итераций!\n`);
         return 0;
@@ -203,10 +152,10 @@ class SimplexMethod {
                 return false;
             }
         }
-
+        
         return true;
     }
-
+    
     isOptimal() {
         return this.simplexTable[this.simplexTable.length - 1].every((element, index) => (element < 0 || index == 0));
     }
@@ -218,8 +167,8 @@ class SimplexMethod {
      */
     calculateGeordane(r, k) {
         let newSimplexTable = this.simplexTable.slice()
-            .map((element) => (element.slice()));
-
+        .map((element) => (element.slice()));
+        
         // обмен переменных
         let oldBasis = this.baseValues[r];
         this.baseValues[r] = this.freeValues[k - 1];
@@ -233,17 +182,19 @@ class SimplexMethod {
                     newSimplexTable[string][column] = this.simplexTable[r][column] / this.simplexTable[r][k];
                 } else if (string != r && column == k) {
                     newSimplexTable[string][column] = -(this.simplexTable[string][k] / this.simplexTable[r][k]);
-                    // console.log(`str ${string}, col: ${column}, val: ${newSimplexTable[string][column]}`);
                 } else if (string != r && column != k) {
                     newSimplexTable[string][column] = this.simplexTable[string][column] -
-                        (this.simplexTable[string][k] * this.simplexTable[r][column] / this.simplexTable[r][k]);
-                    // console.log(`str ${string}, col: ${column}, val: ${newSimplexTable[string][column]}`);
+                    (this.simplexTable[string][k] * this.simplexTable[r][column] / this.simplexTable[r][k]);
                 }
             }
         }
-
+        
         this.simplexTable = newSimplexTable;
         this.iteration++;
+    }
+
+    static checkTable(simplexTable) {
+        return (simplexTable instanceof Array);
     }
 }
 
